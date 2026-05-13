@@ -1,4 +1,4 @@
-from subprocess import CalledProcessError, run
+from subprocess import CalledProcessError, TimeoutExpired, run
 import os
 import platform
 import shutil
@@ -127,7 +127,7 @@ def download_page(
             addQuotes(expected_output),
             "--filename-conflict-action=overwrite",
             "--browser-capture-max-time=" + timeout_ms,
-            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage"]',
+            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage", "--browser-wait-until=networkidle2", "--block-video=true", "--block-audio=true"]',
         ]
         if CHROME_PATH:
             args.append(
@@ -145,7 +145,13 @@ def download_page(
             else:
                 print(f"    Executing: {cmd_args}")
 
-        proc = run(cmd_args, shell=use_shell_string, check=True, capture_output=True)
+        proc = run(
+            cmd_args,
+            shell=use_shell_string,
+            timeout=SINGLEFILE_TIMEOUT + 15,
+            check=True,
+            capture_output=True,
+        )
 
         # Decode outputs immediately so we can surface them even if the file check fails
         stdout_text = proc.stdout.decode("utf-8", errors="replace").strip()
@@ -208,6 +214,11 @@ def download_page(
                 # time.sleep(min(delay, deadline - now))
                 # delay = min(delay * 1.5, 1.0)
 
+    except TimeoutExpired as e:
+        raise Exception(
+            f"SingleFile subprocess completely hung and was forcefully terminated after {e.timeout}s for {url}"
+        ) from e
+
     except CalledProcessError as e:
         # Re-raise with more context including both stdout and stderr
         stderr_text = ""
@@ -234,6 +245,7 @@ def download_page(
         if stderr_text:
             msg_parts.append(f"stderr:\n{stderr_text}")
         raise Exception("\n".join(msg_parts)) from e
+
     except Exception as e:
         # Propagate our own exceptions
         raise e

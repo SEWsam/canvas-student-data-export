@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     gosu \
-    fonts-liberation \
+    fonts-liberation \ 
+    dumb-init \
     && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -34,5 +35,5 @@ RUN chmod +x /app/entrypoint.sh
 VOLUME /output
 VOLUME /config
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/app/entrypoint.sh"]
 CMD ["python", "export.py", "-c", "/config/credentials.yaml", "-o", "/output/", "--singlefile"]
