@@ -2,6 +2,7 @@
 ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim as base
 
+LABEL org.opencontainers.image.source=https://github.com/SEWsam/canvas-student-data-export-docker
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV NODE_OPTIONS="--dns-result-order=ipv4first"
