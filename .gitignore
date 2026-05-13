@@ -1,7 +1,10 @@
 .vscode
+.venv/
 __pycache__/
 node_modules/
 output/
+config/
 
 credentials.yaml
 cookies.txt
+.DS_Store

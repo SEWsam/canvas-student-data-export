@@ -2,7 +2,7 @@ from subprocess import CalledProcessError, run
 import os
 import platform
 import shutil
-import time
+# import time
 
 if platform.system() == "Windows":
     SINGLEFILE_BINARY_PATH = os.path.join("node_modules", ".bin", "single-file.cmd")
@@ -10,7 +10,9 @@ else:
     SINGLEFILE_BINARY_PATH = os.path.join("node_modules", ".bin", "single-file")
 
 # Prefer calling the Node entry directly for reliable cross-platform arg passing
-SINGLEFILE_NODE_ENTRY = os.path.join("node_modules", "single-file-cli", "single-file-node.js")
+SINGLEFILE_NODE_ENTRY = os.path.join(
+    "node_modules", "single-file-cli", "single-file-node.js"
+)
 
 # Default Chrome/Chromium executable path is determined heuristically per-OS.
 
@@ -34,7 +36,13 @@ def _detect_chrome_path() -> str:
             "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
         ]
     else:  # assume Linux/Unix
-        for name in ["google-chrome", "google-chrome-stable", "chromium-browser", "chromium", "chrome"]:
+        for name in [
+            "google-chrome",
+            "google-chrome-stable",
+            "chromium-browser",
+            "chromium",
+            "chrome",
+        ]:
             path = shutil.which(name)
             if path:
                 return path
@@ -69,12 +77,23 @@ def override_singlefile_timeout(timeout: float):
 
 
 def addQuotes(str):
-    return "\"" + str.strip("\"") + "\""
+    return '"' + str.strip('"') + '"'
 
 
-def download_page(url, cookies_path, output_path, output_name_template = "", additional_args = (), verbose=False):
+def download_page(
+    url,
+    cookies_path,
+    output_path,
+    output_name_template="",
+    additional_args=(),
+    verbose=False,
+):
     # Build full output path we expect SingleFile to create
-    expected_output = os.path.join(output_path, output_name_template) if output_name_template else output_path
+    expected_output = (
+        os.path.join(output_path, output_name_template)
+        if output_name_template
+        else output_path
+    )
 
     # Prepare argument list for robust cross-platform execution
     node_path = shutil.which("node")
@@ -91,9 +110,10 @@ def download_page(url, cookies_path, output_path, output_name_template = "", add
             expected_output,
             "--filename-conflict-action=overwrite",
             "--browser-capture-max-time=" + timeout_ms,
+            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage"]',
         ]
         if CHROME_PATH:
-            cmd_args.append("--browser-executable-path=" + CHROME_PATH.strip("\""))
+            cmd_args.append("--browser-executable-path=" + CHROME_PATH.strip('"'))
         if cookies_path:
             cmd_args.append("--browser-cookies-file=" + cookies_path)
         # Append any additional CLI args as-is
@@ -107,9 +127,12 @@ def download_page(url, cookies_path, output_path, output_name_template = "", add
             addQuotes(expected_output),
             "--filename-conflict-action=overwrite",
             "--browser-capture-max-time=" + timeout_ms,
+            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage"]',
         ]
         if CHROME_PATH:
-            args.append("--browser-executable-path=" + addQuotes(CHROME_PATH.strip("\"")))
+            args.append(
+                "--browser-executable-path=" + addQuotes(CHROME_PATH.strip('"'))
+            )
         if cookies_path:
             args.append("--browser-cookies-file=" + addQuotes(cookies_path))
         args.extend(additional_args)
@@ -136,10 +159,10 @@ def download_page(url, cookies_path, output_path, output_name_template = "", add
                 # SingleFile prints non-error info to stderr; show only in verbose mode
                 print(stderr_text)
 
-        # Wait for the file to exist and be readable (handles Windows write/lock delays)
-        start_time = time.monotonic()
-        deadline = start_time + SINGLEFILE_TIMEOUT + 5.0  # seconds, add buffer
-        delay = 0.1
+        # # Wait for the file to exist and be readable (handles Windows write/lock delays)
+        # start_time = time.monotonic()
+        # deadline = start_time + SINGLEFILE_TIMEOUT + 5.0  # seconds, add buffer
+        # delay = 0.1
         while True:
             try:
                 if not os.path.exists(expected_output):
@@ -159,38 +182,50 @@ def download_page(url, cookies_path, output_path, output_name_template = "", add
                         os.remove(expected_output)
                     except Exception:
                         pass
-                    raise Exception("Authentication failed, downloaded a login page. Please update your cookies.")
+                    raise Exception(
+                        "Authentication failed, downloaded a login page. Please update your cookies."
+                    )
 
                 break  # success
             except (PermissionError, FileNotFoundError) as e:
-                now = time.monotonic()
-                if now >= deadline:
-                    # Enrich the error with SingleFile logs for better diagnostics
-                    elapsed = now - start_time
-                    details = [
-                        f"SingleFile produced no readable output within {elapsed:.1f}s",
-                        f"URL: {url}",
-                        f"Expected path: {expected_output}",
-                        f"Exit code: {proc.returncode}",
-                    ]
-                    if stdout_text:
-                        details.append(f"stdout:\n{stdout_text}")
-                    if stderr_text:
-                        details.append(f"stderr:\n{stderr_text}")
-                    raise Exception("\n".join(details)) from e
-                time.sleep(min(delay, deadline - now))
-                delay = min(delay * 1.5, 1.0)
+                # now = time.monotonic()
+                # if now >= deadline:
+                #     # Enrich the error with SingleFile logs for better diagnostics
+                #     elapsed = now - start_time
+                elapsed = SINGLEFILE_TIMEOUT
+                #     ...
+                details = [
+                    f"SingleFile produced no readable output within {elapsed:.1f}s",
+                    f"URL: {url}",
+                    f"Expected path: {expected_output}",
+                    f"Exit code: {proc.returncode}",
+                ]
+                if stdout_text:
+                    details.append(f"stdout:\n{stdout_text}")
+                if stderr_text:
+                    details.append(f"stderr:\n{stderr_text}")
+                raise Exception("\n".join(details)) from e
+                # time.sleep(min(delay, deadline - now))
+                # delay = min(delay * 1.5, 1.0)
 
     except CalledProcessError as e:
         # Re-raise with more context including both stdout and stderr
         stderr_text = ""
         stdout_text = ""
         try:
-            stderr_text = e.stderr.decode('utf-8', errors='replace') if e.stderr is not None else ""
+            stderr_text = (
+                e.stderr.decode("utf-8", errors="replace")
+                if e.stderr is not None
+                else ""
+            )
         except Exception:
             pass
         try:
-            stdout_text = e.stdout.decode('utf-8', errors='replace') if e.stdout is not None else ""
+            stdout_text = (
+                e.stdout.decode("utf-8", errors="replace")
+                if e.stdout is not None
+                else ""
+            )
         except Exception:
             pass
         msg_parts = [f"SingleFile failed for {url}."]
@@ -203,5 +238,6 @@ def download_page(url, cookies_path, output_path, output_name_template = "", add
         # Propagate our own exceptions
         raise e
 
-#if __name__ == "__main__":
-    #download_page("https://www.google.com/", "", "./output/test", "test.html")
+
+# if __name__ == "__main__":
+# download_page("https://www.google.com/", "", "./output/test", "test.html")

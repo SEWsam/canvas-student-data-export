@@ -1,0 +1,11 @@
+services:
+  canvas-exporter:
+    build:
+      context: .
+    environment:
+      - PUID=99
+      - PGID=100
+      - VERBOSE=true
+    volumes:
+      - ./config:/config
+      - ./output:/output
