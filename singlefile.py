@@ -112,8 +112,6 @@ def download_page(
             "--browser-capture-max-time=" + timeout_ms,
             "--browser-wait-until=load",
             "--browser-wait-delay=5000",
-            "--remove-video-elements=true",
-            "--remove-audio-elements=true",
             '--browser-args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]',
         ]
         if CHROME_PATH:
@@ -133,8 +131,6 @@ def download_page(
             "--browser-capture-max-time=" + timeout_ms,
             "--browser-wait-until=load",
             "--browser-wait-delay=5000",
-            "--remove-video-elements=true",
-            "--remove-audio-elements=true",
             '--browser-args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]',
         ]
         if CHROME_PATH:
