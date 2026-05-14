@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 RUN mkdir /output /config
 
-COPY export.py singlefile.py entrypoint.sh /app/
+COPY export.py singlefile.py nuke_media.js entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
 
 VOLUME /output

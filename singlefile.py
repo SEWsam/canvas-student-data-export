@@ -4,6 +4,11 @@ import platform
 import shutil
 # import time
 
+# blow up all media
+MEDIABOMB_SCRIPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "mediabomb.js"
+)
+
 if platform.system() == "Windows":
     SINGLEFILE_BINARY_PATH = os.path.join("node_modules", ".bin", "single-file.cmd")
 else:
@@ -118,6 +123,8 @@ def download_page(
             cmd_args.append("--browser-executable-path=" + CHROME_PATH.strip('"'))
         if cookies_path:
             cmd_args.append("--browser-cookies-file=" + cookies_path)
+        if os.path.exists(MEDIABOMB_SCRIPT):
+            cmd_args.append("--browser-script=" + MEDIABOMB_SCRIPT)
         # Append any additional CLI args as-is
         cmd_args.extend(list(additional_args))
     else:
@@ -139,6 +146,8 @@ def download_page(
             )
         if cookies_path:
             args.append("--browser-cookies-file=" + addQuotes(cookies_path))
+        if os.path.exists(MEDIABOMB_SCRIPT):
+            args.append("--browser-script=" + addQuotes(MEDIABOMB_SCRIPT))
         args.extend(additional_args)
         cmd_args = " ".join(args)
 
