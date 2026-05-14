@@ -110,7 +110,11 @@ def download_page(
             expected_output,
             "--filename-conflict-action=overwrite",
             "--browser-capture-max-time=" + timeout_ms,
-            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage", "--block-video=true", "--block-audio=true"]',
+            "--browser-wait-until=load",
+            "--browser-wait-delay=5000",
+            "--remove-video-elements=true",
+            "--remove-audio-elements=true",
+            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]',
         ]
         if CHROME_PATH:
             cmd_args.append("--browser-executable-path=" + CHROME_PATH.strip('"'))
@@ -127,7 +131,11 @@ def download_page(
             addQuotes(expected_output),
             "--filename-conflict-action=overwrite",
             "--browser-capture-max-time=" + timeout_ms,
-            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage", "--block-video=true", "--block-audio=true"]',
+            "--browser-wait-until=load",
+            "--browser-wait-delay=5000",
+            "--remove-video-elements=true",
+            "--remove-audio-elements=true",
+            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]',
         ]
         if CHROME_PATH:
             args.append(
