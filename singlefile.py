@@ -110,7 +110,7 @@ def download_page(
             expected_output,
             "--filename-conflict-action=overwrite",
             "--browser-capture-max-time=" + timeout_ms,
-            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage"]',
+            '--browser-args=["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage", "--browser-wait-until=networkidle2", "--block-video=true", "--block-audio=true"]',
         ]
         if CHROME_PATH:
             cmd_args.append("--browser-executable-path=" + CHROME_PATH.strip('"'))
